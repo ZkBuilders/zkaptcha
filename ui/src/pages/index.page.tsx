@@ -1,29 +1,40 @@
-
 import Head from 'next/head';
-import Image from 'next/image';
-import { useEffect } from 'react';
-import GradientBG from '../components/GradientBG.js';
-import styles from '../styles/Home.module.css';
-import heroMinaLogo from '../../public/assets/hero-mina-logo.svg';
-import arrowRightSmall from '../../public/assets/arrow-right-small.svg';
+import { useEffect, useState } from 'react';
+
+const captchaImages = {
+  1: "https://tomato-capitalist-zebra-872.mypinata.cloud/ipfs/QmfFVUDT8WLED79MyMJuBZAmkzVWqq7zV5yeavkgpdsJbZ",
+  // Add more entries as needed
+};
 
 export default function Home() {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [currentCaptchaId, setCurrentCaptchaId] = useState(1);
+
+  const openPopup = () => {
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handleCaptchaChange = (id: number) => {
+    setCurrentCaptchaId(id);
+  };
+
   useEffect(() => {
     (async () => {
       const { Mina, PublicKey } = await import('o1js');
       const { Add } = await import('../../../contracts/build/src/');
 
-      // Update this to use the address (public key) for your zkApp account.
-      // To try it out, you can try this address for an example "Add" smart contract that we've deployed to
-      // Berkeley Testnet B62qkwohsqTBPsvhYE8cPZSpzJMgoKn4i1LQRuBAtVXWpaT4dgH6WoA.
       const zkAppAddress = '';
-      // This should be removed once the zkAppAddress is updated.
+
       if (!zkAppAddress) {
         console.error(
           'The following error is caused because the zkAppAddress has an empty string as the public key. Update the zkAppAddress with the public key for your zkApp account, or try this address for an example "Add" smart contract that we deployed to Berkeley Testnet: B62qkwohsqTBPsvhYE8cPZSpzJMgoKn4i1LQRuBAtVXWpaT4dgH6WoA'
         );
       }
-      //const zkApp = new Add(PublicKey.fromBase58(zkAppAddress))
+      // const zkApp = new Add(PublicKey.fromBase58(zkAppAddress))
     })();
   }, []);
 
@@ -34,116 +45,42 @@ export default function Home() {
         <meta name="description" content="built with o1js" />
         <link rel="icon" href="/assets/favicon.ico" />
       </Head>
-      <GradientBG>
-        <main className={styles.main}>
-          <div className={styles.center}>
-            <a
-              href="https://minaprotocol.com/"
-              target="_blank"
-              rel="noopener noreferrer"
+      <div className="min-h-screen flex items-center justify-center">
+        <main className="text-center">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Mina zkApp UI</h1>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+              onClick={openPopup}
             >
-              <Image
-                className={styles.logo}
-                src={heroMinaLogo}
-                alt="Mina Logo"
-                width="191"
-                height="174"
-                priority
-              />
-            </a>
-            <p className={styles.tagline}>
-              built with
-              <code className={styles.code}> o1js</code>
-            </p>
-          </div>
-          <p className={styles.start}>
-            Get started by editing
-            <code className={styles.code}> src/pages/index.js</code> or <code className={styles.code}> src/pages/index.tsx</code>
-          </p>
-          <div className={styles.grid}>
-            <a
-              href="https://docs.minaprotocol.com/zkapps"
-              className={styles.card}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <h2>
-                <span>DOCS</span>
-                <div>
-                  <Image
-                    src={arrowRightSmall}
-                    alt="Mina Logo"
-                    width={16}
-                    height={16}
-                    priority
-                  />
-                </div>
-              </h2>
-              <p>Explore zkApps, how to build one, and in-depth references</p>
-            </a>
-            <a
-              href="https://docs.minaprotocol.com/zkapps/tutorials/hello-world"
-              className={styles.card}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <h2>
-                <span>TUTORIALS</span>
-                <div>
-                  <Image
-                    src={arrowRightSmall}
-                    alt="Mina Logo"
-                    width={16}
-                    height={16}
-                    priority
-                  />
-                </div>
-              </h2>
-              <p>Learn with step-by-step o1js tutorials</p>
-            </a>
-            <a
-              href="https://discord.gg/minaprotocol"
-              className={styles.card}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <h2>
-                <span>QUESTIONS</span>
-                <div>
-                  <Image
-                    src={arrowRightSmall}
-                    alt="Mina Logo"
-                    width={16}
-                    height={16}
-                    priority
-                  />
-                </div>
-              </h2>
-              <p>Ask questions on our Discord server</p>
-            </a>
-            <a
-              href="https://docs.minaprotocol.com/zkapps/how-to-deploy-a-zkapp"
-              className={styles.card}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <h2>
-                <span>DEPLOY</span>
-                <div>
-                  <Image
-                    src={arrowRightSmall}
-                    alt="Mina Logo"
-                    width={16}
-                    height={16}
-                    priority
-                  />
-                </div>
-              </h2>
-              <p>Deploy a zkApp to Berkeley Testnet</p>
-            </a>
+              Verify Captcha
+            </button>
           </div>
         </main>
-      </GradientBG>
+      </div>
+
+      {isPopupOpen && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-8 rounded shadow-md">
+            <img
+              crossOrigin="anonymous"
+              src={captchaImages[currentCaptchaId as keyof typeof captchaImages]}  
+              alt="Captcha Image"
+              className="mb-4"
+            />
+            <label className="block mb-4">
+              Enter Captcha:
+              <input className="border rounded py-2 px-3" type="text" />
+            </label>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={closePopup}
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
