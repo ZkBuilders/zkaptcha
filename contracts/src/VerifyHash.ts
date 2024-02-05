@@ -1,44 +1,30 @@
-import { Field, SmartContract, state, State, method, Poseidon, MerkleMapWitness, Provable } from 'o1js';
+import { Field, SmartContract, state, State, method, MerkleMapWitness, Provable, PublicKey } from 'o1js';
 
 export class VerifyHash extends SmartContract {
-  @state(Field) x = State<Field>();
   @state(Field) mapRoot = State<Field>();
+  @state(PublicKey) owner = State<PublicKey>();
 
-  @method initState(captcha: Field, secret: Field, initialRoot: Field) {
-    this.x.set(Poseidon.hash([captcha, secret]));
+  @method initState(initialRoot: Field, owner: PublicKey) {
     this.mapRoot.set(initialRoot);
+    this.owner.set(owner);
   }
 
-  @method verifyHash(userInput: Field, secret: Field) {
-    const x = this.x.get();
-    this.x.requireEquals(x);
-    Poseidon.hash([userInput, secret]).assertEquals(x);
+  @method update(
+    previousRoot: Field,
+    newRoot: Field,
+  ) {
+    const initialRoot = this.mapRoot.get();
+    this.mapRoot.requireEquals(initialRoot);
+    previousRoot.assertEquals(initialRoot);
 
+    // check ownership
+    const owner = this.owner.get();
+    this.owner.requireEquals(owner);
+    this.sender.assertEquals(owner);
+
+    // update the state
+    this.mapRoot.set(newRoot);
   }
-
-  // @method update(
-  //   keyWitness: MerkleMapWitness,
-  //   keyToChange: Field,
-  //   valueBefore: Field,
-  //   incrementAmount: Field,
-  // ) {
-  //   const initialRoot = this.mapRoot.get();
-  //   this.mapRoot.requireEquals(initialRoot);
-
-  //   incrementAmount.assertLt(Field(10));
-
-  //   // check the initial state matches what we expect
-  //   const [ rootBefore, key ] = keyWitness.computeRootAndKey(valueBefore);
-  //   rootBefore.assertEquals(initialRoot);
-
-  //   key.assertEquals(keyToChange);
-
-  //   // compute the root after incrementing
-  //   const [ rootAfter, _ ] = keyWitness.computeRootAndKey(valueBefore.add(incrementAmount));
-
-  //   // set the new root
-  //   this.treeRoot.set(rootAfter);
-  // }
 
   @method checkMap(
     keyWitness: MerkleMapWitness,

@@ -38,35 +38,26 @@ const zkAppInstance = new VerifyHash(zkAppAddress);
 const deployTxn = await Mina.transaction(deployerAccount, () => {
     AccountUpdate.fundNewAccount(deployerAccount);
     zkAppInstance.deploy();
-    zkAppInstance.initState(captchaValue.toFields()[0], secret, initMerkleMap.getRoot());
+    zkAppInstance.initState(initMerkleMap.getRoot(), senderAccount);
 });
 await deployTxn.prove();
 await deployTxn.sign([deployerKey, zkAppPrivateKey]).send();
 
 
-const actHash = zkAppInstance.x.get();
-console.log('Actual hash', actHash);
 
 // ----------------------------------------------------
 
 const txn1 = await Mina.transaction(senderAccount, () => {
-  zkAppInstance.verifyHash(CircuitString.fromString('Apple').toFields()[0], secret);
+  zkAppInstance.checkMap(initMerkleMap.getWitness(Field.from(1)), Field.from(1), Poseidon.hash([...CircuitString.fromString('value1').toFields(), secret]));
 });
 await txn1.prove();
 await txn1.sign([senderKey]).send();
-console.log("Verified hash Successfully!");
-
-const txn2 = await Mina.transaction(senderAccount, () => {
-  zkAppInstance.checkMap(initMerkleMap.getWitness(Field.from(1)), Field.from(1), Poseidon.hash([...CircuitString.fromString('value1').toFields(), secret]));
-});
-await txn2.prove();
-await txn2.sign([senderKey]).send();
 console.log("Checked map Successfully!");
 
 // wrong value
-const txn3 = await Mina.transaction(senderAccount, () => {
+const txn2 = await Mina.transaction(senderAccount, () => {
   zkAppInstance.checkMap(initMerkleMap.getWitness(Field.from(1)), Field.from(1), Poseidon.hash([...CircuitString.fromString('value2').toFields(), secret]));
 });
-await txn3.prove();
-await txn3.sign([senderKey]).send();
+await txn2.prove();
+await txn2.sign([senderKey]).send();
 console.log("Checked map failed!");
